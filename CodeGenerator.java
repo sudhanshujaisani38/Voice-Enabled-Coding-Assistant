@@ -9,10 +9,10 @@
  * @author sudhanshu
  */
 import py4j.GatewayServer;
-
 import javax.lang.model.element.Modifier;
-import javax.swing.JFrame;
-import java.io.IOException;
+
+import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.TypeName;
 
 
 public class CodeGenerator {
@@ -45,19 +45,80 @@ public class CodeGenerator {
     public int processText(String s) throws Exception {
        return CommandRedirect.redirectCommand(s);
     }
+
     public int setClassName(String cName)throws Exception{
         Actions.className=cName;
         return Actions.defineClass();
     }
+
     public int setClassModifier(String modifierName)throws Exception{
         if(modifierName.equals("public")){
             Actions.modifier=Modifier.PUBLIC;
+        }else if(!modifierName.equals("default")){
+            System.out.println("class modifier can either be public or default, try again");
+            return ReturnCodes.REQUEST_CLASS_MODIFIER;
         }
         return Actions.defineClass();
     }
+
     public int printMsg(String s)throws Exception{
-        codeEditorFrame.customOutputStream.clearEditor();
-        return Actions.printMessage(s);
+        Actions.printMsg=s;
+        return Actions.printMessage();
+    }
+
+    public int setMethodName(String s)throws Exception{
+        Actions.methodName=s;
+        return Actions.addMethodToClass();
+    }
+
+    public int setMethodReturnType(String s)throws Exception{
+        TypeName typeName=DataTypes.dataTypes.get(s);
+        if(typeName!=null){
+            Actions.methodReturnType=typeName;
+            return Actions.addMethodToClass();
+        }else{
+            System.out.println("\""+s+"\" is not a valid type, try again");
+            return ReturnCodes.REQUEST_METHOD_RETURN_TYPE;
+        }
+    }
+
+    public int setMethodParameterType(String s)throws Exception{
+        TypeName typeName=DataTypes.dataTypes.get(s);
+        if(typeName!=null){
+            Actions.methodParaType=typeName;
+            return Actions.addMethodToClass();
+        }else{
+            System.out.println("\""+s+"\" is not a valid type, try again");
+            return ReturnCodes.REQUEST_METHOD_PARAMETER_TYPE;
+        }
+    }
+
+    public int setMethodParameterName(String s)throws Exception{
+        Actions.methodParameterName=s;
+        return Actions.addMethodToClass();
+    }
+
+    public int setWantMoreParameters(String s)throws Exception{
+        if(s.equals("yes"))
+        Actions.wantMoreParameters=true;
+        else if(s.equals("no"))
+        Actions.wantMoreParameters=false;
+        else{
+            System.out.println("\""+s+"\" is not a valid response, try again");
+            return ReturnCodes.REQUEST_WANT_MORE_PARAMETERS;
+        }
+        return Actions.addMethodToClass();
+    }
+
+    public int changeContext(String s){
+        MethodSpec.Builder temp=Actions.methodList.get(s);
+        if(temp==null){
+            System.out.println("\""+s+"\" is not a valid context, try again");
+            return ReturnCodes.REQUEST_CONTEXT_NAME;
+        }else{
+            Actions.currentMBuilder=temp;
+            return ReturnCodes.TASK_SUCCESSFUL;
+        }
     }
 
 }

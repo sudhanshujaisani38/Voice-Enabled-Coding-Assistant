@@ -9,4 +9,5 @@ public class ReturnCodes{
     public static final int REQUEST_WANT_MORE_PARAMETERS=106;
     public static final int REQUEST_METHOD_PARAMETER_TYPE=107;
     public static final int REQUEST_METHOD_PARAMETER_NAME=108;
+    public static final int REQUEST_CONTEXT_NAME=109;
 }

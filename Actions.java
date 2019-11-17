@@ -11,60 +11,59 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.ArrayTypeName;
+import com.squareup.javapoet.FieldSpec;
+
 import javax.lang.model.element.Modifier;
 
 public class Actions {
+    //related to class
     static String className;
     static Modifier modifier;
-    static TypeSpec typeSpec;
+    static TypeSpec.Builder typeSpecBuilder;
 
-    public static int defineClass() throws IOException {
+    //related to method
+    static String methodName;
+    static TypeName methodReturnType;
+    static TypeName methodParaType;
+    static String methodParameterName;
+    static Boolean wantMoreParameters;
+    static MethodSpec.Builder methodSpecBuilder;
+    static boolean definingParameters;
+    static HashMap<String, ArrayList<ParameterSpec.Builder>>parameterList=new HashMap<>();
+
+    //current context
+    static MethodSpec.Builder currentMBuilder;
+
+    //to print msg
+    static String printMsg;
+
+    static HashMap<String,MethodSpec.Builder> methodList=new HashMap<>();
+    static HashMap<String,FieldSpec.Builder> fieldList=new HashMap<>();
+
+    public static int defineClass() throws Exception {
         if (className == null) {
-            return 101;
+            return ReturnCodes.REQUEST_CLASS_NAME;
         }
         if (modifier == null) {
-            return 102;
+            return ReturnCodes.REQUEST_CLASS_MODIFIER;
         }
-        TypeSpec.Builder tBuilder = TypeSpec.classBuilder(className);
-        tBuilder.addModifiers(modifier);
-
-        ArrayTypeName stringArray = ArrayTypeName.of(String.class);
-        ParameterSpec.Builder pBuilder = ParameterSpec.builder(stringArray, "args");
-
-        MethodSpec.Builder mBuilder = MethodSpec.methodBuilder("main");
-        mBuilder.addModifiers(Modifier.PUBLIC, Modifier.STATIC);
-        mBuilder.addParameter(pBuilder.build());
-        mBuilder.returns(TypeName.VOID);
-
-        tBuilder.addMethod(mBuilder.build());
-        typeSpec = tBuilder.build();
-        JavaFile.Builder javaFileBuilder = JavaFile.builder("", typeSpec);
-        JavaFile javaFile = javaFileBuilder.build();
         System.out.println("Defining class");
-        javaFile.writeTo(CodeEditorFrame.printStream);
-        return 0;
+        refreshTypeSpec();
+        return ReturnCodes.TASK_SUCCESSFUL;
     }
 
-    public static int printMessage(String msg) throws Exception {
-        TypeSpec.Builder tBuilder = TypeSpec.classBuilder(className);
-        tBuilder.addModifiers(modifier);
+    public static int printMessage() throws Exception {
+        if(printMsg==null){
+            return ReturnCodes.REQUEST_MSG_TO_PRINT;
+        }
+        currentMBuilder.addStatement("System.out.println(\" " + printMsg + "\")");
+        refreshTypeSpec();
+        printMsg=null;
+        return ReturnCodes.TASK_SUCCESSFUL;
+    }
 
-        ArrayTypeName stringArray = ArrayTypeName.of(String.class);
-        ParameterSpec.Builder pBuilder = ParameterSpec.builder(stringArray, "args");
-
-        MethodSpec.Builder mBuilder = MethodSpec.methodBuilder("main");
-        mBuilder.addModifiers(Modifier.PUBLIC, Modifier.STATIC);
-        mBuilder.addParameter(pBuilder.build());
-        mBuilder.addStatement("System.out.println(\" " + msg + "\")");
-        mBuilder.returns(TypeName.VOID);
-
-        tBuilder.addMethod(mBuilder.build());
-        typeSpec = tBuilder.build();
-        JavaFile.Builder javaFileBuilder = JavaFile.builder("", typeSpec);
-        JavaFile javaFile = javaFileBuilder.build();
-        System.out.println("Defining class");
-        javaFile.writeTo(CodeEditorFrame.printStream);
-        return 0;
+    public static int changeContext(){
+       return ReturnCodes.REQUEST_CONTEXT_NAME;
     }
 
     public static int saveFile() throws Exception {
@@ -79,7 +78,105 @@ public class Actions {
         fos.flush();
         fos.close();
         System.out.println(" File Saved!");
-        return 0;
+        return ReturnCodes.TASK_SUCCESSFUL;
+    }
+
+
+
+    public static int addMethodToClass() throws Exception{
+        
+        if(methodName==null){
+            return ReturnCodes.REQUEST_METHOD_NAME;
+        }
+        if(methodReturnType==null){
+            return ReturnCodes.REQUEST_METHOD_RETURN_TYPE;
+        }
+        if(wantMoreParameters==null){
+            return ReturnCodes.REQUEST_WANT_MORE_PARAMETERS;
+        }
+        methodSpecBuilder=MethodSpec.methodBuilder(methodName);
+        methodSpecBuilder.returns(methodReturnType);
+        
+        while(wantMoreParameters){
+            int ret=addParameterToMethodSpec();
+            if(ret==ReturnCodes.TASK_SUCCESSFUL){
+                return ReturnCodes.REQUEST_WANT_MORE_PARAMETERS;
+            }else{
+                return ret;
+            }
+        }
+        ArrayList<ParameterSpec.Builder>paraList=parameterList.get(methodName);
+        if(paraList!=null){
+            for(ParameterSpec.Builder pBuilder:paraList){
+                methodSpecBuilder.addParameter(pBuilder.build());
+            }
+        }
+        methodList.put(methodName, methodSpecBuilder);
+        refreshTypeSpec();
+        methodSpecBuilder=null;
+        methodName=null;
+        methodReturnType=null;
+        wantMoreParameters=null;
+        return ReturnCodes.TASK_SUCCESSFUL;
+    }
+
+
+    public static int addParameterToMethodSpec()throws Exception{
+        if(methodParaType==null){
+            return ReturnCodes.REQUEST_METHOD_PARAMETER_TYPE;
+        }
+        if(methodParameterName==null){
+            return ReturnCodes.REQUEST_METHOD_PARAMETER_NAME;
+        }
+        ParameterSpec.Builder parameterSpecBuilder=ParameterSpec.builder(methodParaType,methodParameterName);
+        ArrayList<ParameterSpec.Builder> temp=parameterList.get(methodName);
+        if(temp==null){
+            temp=new ArrayList<ParameterSpec.Builder>();
+        }
+        temp.add(parameterSpecBuilder);
+        parameterList.put(methodName, temp);
+        
+        if(temp!=null){
+            for(ParameterSpec.Builder pBuilder:temp){
+                methodSpecBuilder.addParameter(pBuilder.build());
+            }
+        }
+        methodList.put(methodName, methodSpecBuilder);
+        refreshTypeSpec();
+        methodParaType=null;
+        methodParameterName=null;
+        return ReturnCodes.TASK_SUCCESSFUL;
+    }
+
+    public static void refreshTypeSpec() throws Exception{
+        CodeEditorFrame.customOutputStream.clearEditor();
+
+        typeSpecBuilder = TypeSpec.classBuilder(className);
+        typeSpecBuilder.addModifiers(modifier);
+
+        for(MethodSpec.Builder m:methodList.values()){
+            typeSpecBuilder.addMethod(m.build());
+        }
+        for(FieldSpec.Builder f:fieldList.values()){
+            typeSpecBuilder.addField(f.build());
+        }
+        JavaFile.Builder javaFileBuilder = JavaFile.builder("", typeSpecBuilder.build());
+        JavaFile javaFile = javaFileBuilder.build();
+        javaFile.writeTo(CodeEditorFrame.printStream);
+    }
+
+    public static int addMainMethod()throws Exception{
+        ArrayTypeName stringArray = ArrayTypeName.of(String.class);
+        ParameterSpec.Builder pBuilder = ParameterSpec.builder(stringArray, "args");
+
+        MethodSpec.Builder mBuilder = MethodSpec.methodBuilder("main");
+        mBuilder.addModifiers(Modifier.PUBLIC, Modifier.STATIC);
+        mBuilder.addParameter(pBuilder.build());
+        mBuilder.returns(TypeName.VOID);
+        methodList.put("main", mBuilder);
+        currentMBuilder=mBuilder;
+        refreshTypeSpec();
+        return ReturnCodes.TASK_SUCCESSFUL;
     }
 
     public static int executeFile() throws Exception {
@@ -100,7 +197,7 @@ public class Actions {
         while ((s = br.readLine()) != null) {
             System.out.println(s);
         }
-        return 0;
+        return ReturnCodes.TASK_SUCCESSFUL;
     }
 
 }
