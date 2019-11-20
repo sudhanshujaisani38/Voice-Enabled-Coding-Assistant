@@ -10,7 +10,7 @@ def start_jvm():
     os.system('javac -cp . CodeGenerator.java')
     os.system('java -cp . CodeGenerator')
 
-terminating_words=["dan","dhan","done","done done","done done done","ton","tonne","donne","Dan","Dhan","Done","Done Done","Done Done Done","Ton","Tonne","Donne","OK","Okay","okay","dun dun"]
+terminating_words=["dan","dhan","done","done done","done done done","ton","tonne","donne","Dan","Dhan","Done","Done Done","Done Done Done","Ton","Tonne","Donne","OK","Okay","okay","dun dun","finish","close"]
 t1 = threading.Thread(target=start_jvm, args=())
 t1.start() 
 time.sleep(2)
@@ -81,6 +81,21 @@ def getMethodName():
             except sr.RequestError as e:
                 print("Please Check Your Internet Connection, {0}".format(e))                
 
+def getMethodToCall():
+    methodName=""
+    with sr.Microphone() as src:
+        while methodName=="":
+            try:
+                print("Please specify the method to call..")
+                aud=r3.listen(src)
+                methodName=r3.recognize_google(aud)
+                #methodName=input()
+                return gateway.entry_point.setMethodToCall(methodName)
+            except sr.UnknownValueError:
+                print("Sorry, could not understand the methodName")
+            except sr.RequestError as e:
+                print("Please Check Your Internet Connection, {0}".format(e))                
+
 def getMethodReturnType():
     returnType=""
     with sr.Microphone() as src:
@@ -141,18 +156,63 @@ def getMethodParameterName():
             except sr.RequestError as e:
                 print("Please Check Your Internet Connection, {0}".format(e))
 
-def getContextName():
-    contextName=""
+def getVariableType():
+    varType=""
     with sr.Microphone() as src:
-        while contextName=="":
+        while varType=="":
+            try:
+                print("Please specify the variable type..")
+                aud=r3.listen(src)
+                varType=r3.recognize_google(aud)
+                #varType=input()
+                return gateway.entry_point.setVarType(varType)
+            except sr.UnknownValueError:
+                print("Sorry, could not understand the variable type")
+            except sr.RequestError as e:
+                print("Please Check Your Internet Connection, {0}".format(e))
+
+def getVariableName():
+    varName=""
+    with sr.Microphone() as src:
+        while varName=="":
+            try:
+                print("Please specify the variable name..")
+                aud=r3.listen(src)
+                varName=r3.recognize_google(aud)
+                #varName=input()
+                return gateway.entry_point.setVarName(varName)
+            except sr.UnknownValueError:
+                print("Sorry, could not understand the variable name")
+            except sr.RequestError as e:
+                print("Please Check Your Internet Connection, {0}".format(e))
+
+def getVarModifier():
+    modifier=""
+    with sr.Microphone() as src:
+        while modifier=="":
+            try:
+                print("please specify the modifier")
+                aud=r2.listen(src)
+                modifier=r2.recognize_google(aud)
+                #modifier=input()
+                return gateway.entry_point.setVarModifier(modifier)
+            except sr.UnknownValueError:
+                print("Sorry, could not understand the modifier name")
+            except sr.RequestError as e:
+                print("Please Check Your Internet Connection, {0}".format(e))
+
+def getContextName():
+    varName=""
+    with sr.Microphone() as src:
+        while varName=="":
             try:
                 print("Please specify the context..")
                 aud=r3.listen(src)
-                contextName=r3.recognize_google(aud)
-                #contextName=input()
-                return gateway.entry_point.changeContext(contextName)
+                varName=r3.recognize_google(aud)
+                #varName=input()
+                return gateway.entry_point.changeContext(varName)
             except sr.UnknownValueError:
-                print("Sorry, could not understand the parameter name")
+                print("Sorry, could not understand the context name")
             except sr.RequestError as e:
                 print("Please Check Your Internet Connection, {0}".format(e))
 
@@ -191,6 +251,14 @@ with sr.Microphone() as source:
                         code=getMethodParameterType()
                     if(code==REQUEST_CONTEXT_NAME):
                         code=getContextName()
+                    if(code==REQUEST_VARIABLE_NAME):
+                        code=getVariableName()
+                    if(code==REQUEST_VARIABLE_TYPE):
+                        code=getVariableType()
+                    if(code==REQUEST_VARIABLE_MODIFIER):
+                        code=getVarModifier()
+                    if(code==REQUEST_FUNCTION_TO_CALL):
+                        code=getMethodToCall()
             except sr.UnknownValueError:
                 print("Sorry, could not understand the audio")
             except sr.RequestError as e:

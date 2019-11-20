@@ -30,15 +30,34 @@ public class Actions {
     static MethodSpec.Builder methodSpecBuilder;
     static boolean definingParameters;
     static HashMap<String, ArrayList<ParameterSpec.Builder>>parameterList=new HashMap<>();
+    static HashMap<String, String>returnValues=new HashMap<>();
+    static Modifier methodModifier;
+    static int argumentsLeft;
+
+    //related to variables
+    static String varName;
+    static TypeName varType;
+    static FieldSpec.Builder fieldSpecBuilder;
+    static Modifier varModifier;
 
     //current context
     static MethodSpec.Builder currentMBuilder;
+    static HashMap<String,ArrayList<String>> variablesInScope=new HashMap<>();
 
     //to print msg
     static String printMsg;
 
+    //to call method
+    static String methodToCall;
+
     static HashMap<String,MethodSpec.Builder> methodList=new HashMap<>();
     static HashMap<String,FieldSpec.Builder> fieldList=new HashMap<>();
+
+    //global context
+    static MethodSpec.Builder globalContext=MethodSpec.methodBuilder("global");
+    static{
+        currentMBuilder=globalContext;
+    }
 
     public static int defineClass() throws Exception {
         if (className == null) {
@@ -55,6 +74,10 @@ public class Actions {
     public static int printMessage() throws Exception {
         if(printMsg==null){
             return ReturnCodes.REQUEST_MSG_TO_PRINT;
+        }
+        if(currentMBuilder==globalContext){
+            System.out.println("Cannot add print statement in this context,try changing context first..");
+            return ReturnCodes.TASK_SUCCESSFUL;
         }
         currentMBuilder.addStatement("System.out.println(\" " + printMsg + "\")");
         refreshTypeSpec();
@@ -105,6 +128,22 @@ public class Actions {
                 return ret;
             }
         }
+        if(methodReturnType==TypeName.INT){
+            returnValues.put(methodName, "return 0");
+        }else if(methodReturnType==TypeName.FLOAT){
+            returnValues.put(methodName, "return 0.0f");
+        }else if(methodReturnType==TypeName.CHAR){
+            returnValues.put(methodName, "return 0");
+        }else if(methodReturnType==TypeName.DOUBLE){
+            returnValues.put(methodName, "return 0.0");
+        }else if(methodReturnType==TypeName.LONG){
+            returnValues.put(methodName, "return 0l");
+        }else if(methodReturnType==TypeName.VOID){
+            returnValues.put(methodName, "");
+        }else {
+            returnValues.put(methodName,"return null");
+        }
+        methodSpecBuilder.addStatement(returnValues.get(methodName));
         ArrayList<ParameterSpec.Builder>paraList=parameterList.get(methodName);
         if(paraList!=null){
             for(ParameterSpec.Builder pBuilder:paraList){
@@ -146,6 +185,41 @@ public class Actions {
         methodParaType=null;
         methodParameterName=null;
         return ReturnCodes.TASK_SUCCESSFUL;
+    }
+
+    public static int addVariable()throws Exception{
+        if(varType==null){
+            return ReturnCodes.REQUEST_VARIABLE_TYPE;
+        }
+        if(varName==null){
+            return ReturnCodes.REQUEST_VARIABLE_NAME;
+        }
+        if(currentMBuilder==globalContext){
+            
+        if(varModifier==null){
+            return ReturnCodes.REQUEST_VARIABLE_MODIFIER;
+        }
+            FieldSpec.Builder fBuilder=FieldSpec.builder(varType, varName, varModifier);
+            fieldList.put(varName, fBuilder);
+        }
+        else{
+            currentMBuilder.addStatement(" $T "+varName+";",varType);
+        }
+        refreshTypeSpec();
+        varType=null;
+        varName=null;
+        varModifier=null;
+        return ReturnCodes.TASK_SUCCESSFUL;
+    }
+
+    public static int callFunction() throws Exception{
+        if(methodToCall==null){
+            return ReturnCodes.REQUEST_FUNCTION_TO_CALL;
+        }
+        if(returnValues.get(methodToCall).equals("")){
+            currentMBuilder.addStatement(methodToCall+"()");
+        }
+       return ReturnCodes.TASK_SUCCESSFUL;
     }
 
     public static void refreshTypeSpec() throws Exception{

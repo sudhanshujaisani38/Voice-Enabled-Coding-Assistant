@@ -9,6 +9,10 @@
  * @author sudhanshu
  */
 import py4j.GatewayServer;
+
+import java.util.ArrayList;
+import java.util.Set;
+
 import javax.lang.model.element.Modifier;
 
 import com.squareup.javapoet.MethodSpec;
@@ -98,6 +102,44 @@ public class CodeGenerator {
         return Actions.addMethodToClass();
     }
 
+    public int setVarType(String s)throws Exception{
+        TypeName typeName=DataTypes.dataTypes.get(s);
+        if(typeName!=null){
+            Actions.varType=typeName;
+            return Actions.addVariable();
+        }else{
+            System.out.println("\""+s+"\" is not a valid type, try again");
+            return ReturnCodes.REQUEST_VARIABLE_TYPE;
+        }
+    }
+
+    public int setVarName(String s)throws Exception{
+        Actions.varName=s;
+        return Actions.addVariable();
+    }
+    
+    public int setVarModifier(String s)throws Exception{
+        Modifier temp=Modifiers.modifiers.get(s);
+        if(temp!=null){
+            Actions.varModifier=temp;
+            return Actions.addVariable();    
+        }else{
+            System.out.println("\""+s+"\" is not a valid modifier, try again");
+            return ReturnCodes.REQUEST_VARIABLE_MODIFIER;
+        }
+        
+    }
+
+    public int setMethodToCall(String s)throws Exception{
+        MethodSpec.Builder temp=Actions.methodList.get(s);
+        if(temp==null){
+            System.out.println("\""+s+"\" is not a valid method name, try again");
+            return ReturnCodes.REQUEST_FUNCTION_TO_CALL;
+        }else{
+            Actions.methodToCall=s;
+            return Actions.callFunction();
+        }
+    }
     public int setWantMoreParameters(String s)throws Exception{
         if(s.equals("yes"))
         Actions.wantMoreParameters=true;
