@@ -5,8 +5,8 @@ public class CommandRedirect{
     static List cmdSave=Arrays.asList("save","save save","shape","Save","safe","Safe","sev","Sev","sabe","seb","zev","saif");
     static List cmdRun=Arrays.asList("run","Run","ranch","kiran","ran","rang");
     static List cmdPrint=Arrays.asList("print message","print message print message","print message print message print message","print","print print","print statement","print statement print statement","print statement print statement print statement","print log");
-    static List cmdAddMethod=Arrays.asList("add a method","Add a method","add method","add function");
-    static List cmdAddMain=Arrays.asList("add main method","add main","Add Main","Add main");
+    static List cmdAddMethod=Arrays.asList("add a method","Add a method","add method","add function","atom method");
+    static List cmdAddMain=Arrays.asList("add main method","add main","Add Main","Add main","ad mean","admin");
     static List cmdChangeContext=Arrays.asList("change context","context change","change the context","Change the context","Change context");
 
     public static int redirectCommand(String s)throws Exception{

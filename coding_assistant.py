@@ -7,8 +7,8 @@ from py4j.java_gateway import JavaGateway
 
 
 def start_jvm():
-    os.system('javac -cp javapoet-1.11.1.jar:py4j0.10.8.1.jar: CodeGenerator.java')
-    os.system('java -cp javapoet-1.11.1.jar:py4j0.10.8.1.jar: CodeGenerator')
+    os.system('javac -cp . CodeGenerator.java')
+    os.system('java -cp . CodeGenerator')
 
 terminating_words=["dan","dhan","done","done done","done done done","ton","tonne","donne","Dan","Dhan","Done","Done Done","Done Done Done","Ton","Tonne","Donne","OK","Okay","okay","dun dun"]
 t1 = threading.Thread(target=start_jvm, args=())
@@ -27,9 +27,9 @@ def getClassName():
         while class_name=="":
             try:
                 print("Please specify the name of the class..")
-                # aud=r2.listen(src)
-                # class_name=r.recognize_google(aud)
-                class_name=input()
+                aud=r2.listen(src)
+                class_name=r.recognize_google(aud)
+                #class_name=input()
                 return gateway.entry_point.setClassName(class_name)
             except sr.UnknownValueError:
                 print("Sorry, could not understand the classname")
@@ -42,9 +42,9 @@ def getClassModifier():
         while modifier=="":
             try:
                 print("please specify the modifier")
-                # aud=r2.listen(src)
-                # modifier=r2.recognize_google(aud)
-                modifier=input()
+                aud=r2.listen(src)
+                modifier=r2.recognize_google(aud)
+                #modifier=input()
                 return gateway.entry_point.setClassModifier(modifier)
             except sr.UnknownValueError:
                 print("Sorry, could not understand the modifier name")
@@ -57,9 +57,9 @@ def getPrintMessage():
         while msg=="":
             try:
                 print("Please specify the message to be printed..")
-                # aud=r3.listen(src)
-                # msg=r3.recognize_google(aud)
-                msg=input()
+                aud=r3.listen(src)
+                msg=r3.recognize_google(aud)
+                #msg=input()
                 return gateway.entry_point.printMsg(msg)
             except sr.UnknownValueError:
                 print("Sorry, could not understand the message")
@@ -72,9 +72,9 @@ def getMethodName():
         while methodName=="":
             try:
                 print("Please specify the method name..")
-                # aud=r3.listen(src)
-                # methodName=r3.recognize_google(aud)
-                methodName=input()
+                aud=r3.listen(src)
+                methodName=r3.recognize_google(aud)
+                #methodName=input()
                 return gateway.entry_point.setMethodName(methodName)
             except sr.UnknownValueError:
                 print("Sorry, could not understand the methodName")
@@ -87,9 +87,9 @@ def getMethodReturnType():
         while returnType=="":
             try:
                 print("Please specify the return type..")
-                # aud=r3.listen(src)
-                # methodName=r3.recognize_google(aud)
-                returnType=input()
+                aud=r3.listen(src)
+                returnType=r3.recognize_google(aud)
+                #returnType=input()
                 return gateway.entry_point.setMethodReturnType(returnType)
             except sr.UnknownValueError:
                 print("Sorry, could not understand the return type")
@@ -102,9 +102,9 @@ def getWantMoreParameters():
         while ans=="":
             try:
                 print("Do you want to add more parameters?")
-                # aud=r3.listen(src)
-                # methodName=r3.recognize_google(aud)
-                ans=input()
+                aud=r3.listen(src)
+                ans=r3.recognize_google(aud)
+                #ans=input()
                 return gateway.entry_point.setWantMoreParameters(ans)
             except sr.UnknownValueError:
                 print("Sorry, could not understand the response")
@@ -117,9 +117,9 @@ def getMethodParameterType():
         while parameterType=="":
             try:
                 print("Please specify the parameter type..")
-                # aud=r3.listen(src)
-                # methodName=r3.recognize_google(aud)
-                parameterType=input()
+                aud=r3.listen(src)
+                parameterType=r3.recognize_google(aud)
+                #parameterType=input()
                 return gateway.entry_point.setMethodParameterType(parameterType)
             except sr.UnknownValueError:
                 print("Sorry, could not understand the return type")
@@ -132,9 +132,9 @@ def getMethodParameterName():
         while parameterName=="":
             try:
                 print("Please specify the parameter name..")
-                # aud=r3.listen(src)
-                # methodName=r3.recognize_google(aud)
-                parameterName=input()
+                aud=r3.listen(src)
+                parameterName=r3.recognize_google(aud)
+                #parameterName=input()
                 return gateway.entry_point.setMethodParameterName(parameterName)
             except sr.UnknownValueError:
                 print("Sorry, could not understand the parameter name")
@@ -147,9 +147,9 @@ def getContextName():
         while contextName=="":
             try:
                 print("Please specify the context..")
-                # aud=r3.listen(src)
-                # methodName=r3.recognize_google(aud)
-                contextName=input()
+                aud=r3.listen(src)
+                contextName=r3.recognize_google(aud)
+                #contextName=input()
                 return gateway.entry_point.changeContext(contextName)
             except sr.UnknownValueError:
                 print("Sorry, could not understand the parameter name")
@@ -163,10 +163,11 @@ with sr.Microphone() as source:
     try:
         while True :
             try:
+                print("-----------------------------")
                 print("Listening...")
-                #audio = r.listen(source)
-                #text = r.recognize_google(audio)
-                text=input()
+                audio = r.listen(source)
+                text = r.recognize_google(audio)
+                #text=input()
                 if text in terminating_words:
                     break
                 code=gateway.entry_point.processText(text)
