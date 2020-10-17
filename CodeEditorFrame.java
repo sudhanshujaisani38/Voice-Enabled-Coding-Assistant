@@ -12,7 +12,7 @@ public class CodeEditorFrame extends javax.swing.JFrame {
     public CodeEditorFrame() {
         initComponents();
         customOutputStream=new CustomOutputStream(jTextArea1);
-        printStream = new PrintStream(customOutputStream);
+        printStream = new PrintStream(customOutputStream);;
     }
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">                          
